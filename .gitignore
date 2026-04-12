@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.*
+
+# FastAPI uploads/runtime
+backend/uploads/
+backend/*.db
+*.sqlite3
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build artifacts
+dist/
+build/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# VS Code local settings
+.vscode/*.log

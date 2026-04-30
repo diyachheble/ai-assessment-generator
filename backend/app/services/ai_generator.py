@@ -18,6 +18,20 @@ class GeminiResponseParseError(Exception):
 load_dotenv()
 
 
+GEMINI_MODEL_CANDIDATES = [
+    "gemini-flash-latest",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+]
+
+
+def _generate_with_model_name(model_name: str, prompt: str) -> str:
+    model = genai.GenerativeModel(model_name)
+    response = model.generate_content(prompt)
+    return (response.text or "").strip()
+
+
 def _strip_code_fences(text: str) -> str:
     cleaned = text.strip()
     cleaned = re.sub(r"^```json\s*", "", cleaned, flags=re.IGNORECASE)
@@ -36,7 +50,6 @@ def generate_questions_with_gemini(
         raise GeminiConfigError("GEMINI_API_KEY is not set. Add it in backend/.env")
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
 
     # Keep prompt size bounded to avoid token overrun and high latency.
     text_chunk = extracted_text[:3000]
@@ -66,9 +79,22 @@ Document content:
 {text_chunk}
 """.strip()
 
-    response = model.generate_content(prompt)
-    raw_text = (response.text or "").strip()
-    cleaned = _strip_code_fences(raw_text)
+    cleaned = ""
+    last_error: Exception | None = None
+
+    for model_name in GEMINI_MODEL_CANDIDATES:
+        try:
+            raw_text = _generate_with_model_name(model_name, prompt)
+            cleaned = _strip_code_fences(raw_text)
+            break
+        except Exception as exc:
+            last_error = exc
+            continue
+
+    if not cleaned:
+        if last_error:
+            raise GeminiResponseParseError(f"Gemini generation failed for all candidate models: {last_error}") from last_error
+        raise GeminiResponseParseError("Gemini generation returned an empty response")
 
     try:
         parsed = json.loads(cleaned)
@@ -83,6 +109,27 @@ Document content:
         if not isinstance(item, dict):
             continue
         item["question_id"] = idx
+
+        # Normalize options format: Gemini may return dict {"A": "text"} instead of array format
+        if "options" in item:
+            raw_options = item["options"]
+            if isinstance(raw_options, dict):
+                # Convert dict format to array: {"A": "text"} → [{"key": "A", "text": "text"}]
+                normalized_options = [
+                    {"key": key, "text": str(text)}
+                    for key, text in raw_options.items()
+                    if isinstance(key, str)
+                ]
+                item["options"] = normalized_options
+            elif isinstance(raw_options, list):
+                # Ensure list items have key and text fields
+                for opt in raw_options:
+                    if isinstance(opt, dict):
+                        if "key" not in opt and "option" in opt:
+                            opt["key"] = opt.pop("option")
+                        if "text" not in opt and "answer" in opt:
+                            opt["text"] = opt.pop("answer")
+
         normalized.append(item)
 
     return normalized

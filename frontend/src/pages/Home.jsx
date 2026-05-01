@@ -1,31 +1,11 @@
-import { useEffect, useState } from 'react';
-import { AnalyticsCards } from '../components/AnalyticsCards';
+import { useState } from 'react';
 import { UploadBox } from '../components/UploadBox';
 import { Loader } from '../components/Loader';
-import { uploadAndGenerate, fetchAnalytics } from '../services/api';
+import { uploadAndGenerate } from '../services/api';
 
 export const Home = ({ onAssessmentReady }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [analytics, setAnalytics] = useState({
-    totalAssessments: 0,
-    totalTestsAttempted: 0,
-    averageScore: 0,
-    successRate: 0,
-  });
-
-  useEffect(() => {
-    const loadAnalytics = async () => {
-      try {
-        const data = await fetchAnalytics();
-        setAnalytics(data);
-      } catch (error) {
-        console.error('Failed to load analytics:', error);
-      }
-    };
-
-    loadAnalytics();
-  }, []);
 
   const handleFileSelected = (file) => {
     setSelectedFile(file);
@@ -52,29 +32,41 @@ export const Home = ({ onAssessmentReady }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-2 text-center">
-          AI-Based Document Assessment Generator
-        </h1>
-        <p className="text-center text-gray-600 mb-12">
-          Upload your document and get an instant interactive assessment
-        </p>
+    <div className="relative min-h-screen overflow-hidden bg-[#eef3ff]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.9),_rgba(255,255,255,0)_36%),radial-gradient(circle_at_20%_80%,_rgba(82,120,255,0.12),_rgba(82,120,255,0)_24%),radial-gradient(circle_at_85%_15%,_rgba(255,166,77,0.16),_rgba(255,166,77,0)_20%)]" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#2f6ee5] to-transparent opacity-90" />
 
-        {/* Analytics Cards */}
-        <AnalyticsCards analytics={analytics} />
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-end">
+          <div className="hidden items-center gap-3 rounded-2xl bg-gradient-to-r from-[#6b7cff] to-[#84b3ff] px-5 py-3 text-white shadow-[0_16px_40px_rgba(83,110,255,0.35)] sm:flex">
+            <span className="rounded-md bg-black/20 px-2 py-1 text-xs font-bold tracking-[0.2em]">XD</span>
+            <span className="text-sm font-semibold tracking-[0.35em]">FREEBIE</span>
+            <span className="text-lg">⬇</span>
+          </div>
+        </div>
 
-        {/* Upload Box or Loader */}
-        {loading ? (
-          <Loader message="Generating your assessment..." />
-        ) : (
-          <UploadBox
-            onFileSelected={handleFileSelected}
-            onGenerate={handleGenerate}
-            loading={loading}
-          />
-        )}
+        <div className="flex-1 pb-10">
+          <div className="mx-auto max-w-6xl text-center">
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+              AI-Based Document Assessment Generator
+            </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600 sm:text-lg">
+              Upload your document and get a beautifully styled assessment workflow in seconds.
+            </p>
+          </div>
+
+          <div className="mt-10">
+            {loading ? (
+              <Loader message="Generating your assessment..." />
+            ) : (
+              <UploadBox
+                onFileSelected={handleFileSelected}
+                onGenerate={handleGenerate}
+                loading={loading}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

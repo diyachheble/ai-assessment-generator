@@ -122,13 +122,27 @@ Document content:
                 ]
                 item["options"] = normalized_options
             elif isinstance(raw_options, list):
-                # Ensure list items have key and text fields
+                # Convert list items like {"A": "text"} or ensure key/text fields exist.
+                converted_options = []
                 for opt in raw_options:
-                    if isinstance(opt, dict):
-                        if "key" not in opt and "option" in opt:
-                            opt["key"] = opt.pop("option")
-                        if "text" not in opt and "answer" in opt:
-                            opt["text"] = opt.pop("answer")
+                    if not isinstance(opt, dict):
+                        continue
+
+                    if "key" in opt and "text" in opt:
+                        converted_options.append({"key": str(opt["key"]), "text": str(opt["text"])})
+                        continue
+
+                    if len(opt) == 1:
+                        key, text = next(iter(opt.items()))
+                        if isinstance(key, str):
+                            converted_options.append({"key": key, "text": str(text)})
+                            continue
+
+                    key_value = opt.get("option") or opt.get("label") or opt.get("key") or "A"
+                    text_value = opt.get("answer") or opt.get("description") or opt.get("text") or ""
+                    converted_options.append({"key": str(key_value), "text": str(text_value)})
+
+                item["options"] = converted_options
 
         normalized.append(item)
 

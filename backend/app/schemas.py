@@ -26,6 +26,7 @@ class Question(BaseModel):
     question_text: str
     question_type: str
     options: Optional[List[QuestionOption]] = None
+    correct_answer: Optional[str] = None
 
 
 class GenerateAssessmentResponse(BaseModel):

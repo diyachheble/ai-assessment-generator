@@ -5,16 +5,39 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const supportedFiles = [
+  const processSteps = [
     {
-      label: selectedFile?.name || 'Drop a document here',
-      subtitle: selectedFile ? 'Ready to generate' : 'PDF, DOCX, or TXT',
+      step: 1,
+      label: 'Upload Document',
+      subtitle: selectedFile?.name || 'Choose your file',
       tone: 'blue',
       active: true,
+      status: selectedFile ? '✓ Complete' : 'Pending',
     },
-    { label: 'lecture-notes.pdf', subtitle: '431 KB', tone: 'orange' },
-    { label: 'assignment-brief.docx', subtitle: '1.2 MB', tone: 'pink' },
-    { label: 'research-summary.txt', subtitle: '28 KB', tone: 'indigo' },
+    {
+      step: 2,
+      label: 'Generate Assessment',
+      subtitle: selectedFile ? 'Ready to create questions' : 'After upload',
+      tone: 'orange',
+      active: selectedFile ? true : false,
+      status: selectedFile ? '→ Next' : '',
+    },
+    {
+      step: 3,
+      label: 'Take Assessment',
+      subtitle: 'Answer all questions',
+      tone: 'pink',
+      active: false,
+      status: '',
+    },
+    {
+      step: 4,
+      label: 'View Results',
+      subtitle: 'See your performance',
+      tone: 'indigo',
+      active: false,
+      status: '',
+    },
   ];
 
   const fileTypes = [
@@ -99,29 +122,13 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
     <div className="relative mx-auto w-full max-w-6xl">
       <div className="rounded-[32px] bg-[#edf2ff] p-4 shadow-[0_30px_90px_rgba(79,103,255,0.18)] ring-1 ring-white/70 sm:p-5 lg:p-6">
         <div className="overflow-hidden rounded-[28px] bg-white/90 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3.5 w-3.5 rounded-full bg-[#ff5f56]" />
-              <span className="h-3.5 w-3.5 rounded-full bg-[#ffbd2e]" />
-              <span className="h-3.5 w-3.5 rounded-full bg-[#27c93f]" />
-            </div>
-            {selectedFile && !loading && (
-              <button
-                onClick={handleClear}
-                className="grid h-9 w-9 place-items-center rounded-full bg-[#ff4d4f] text-white shadow-lg transition hover:bg-[#ff6b6d]"
-                aria-label="Clear selected file"
-              >
-                ×
-              </button>
-            )}
-          </div>
 
           <div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
             <div className="mb-7 text-center">
               <div className="inline-flex items-center gap-3">
                 <span className="h-px w-14 bg-gradient-to-r from-transparent via-[#f59e0b] to-[#f59e0b] opacity-70" />
                 <h2 className="text-[1.85rem] font-extrabold tracking-[0.2em] text-[#f59e0b] sm:text-[2.1rem]">
-                  UPLOAD FILES
+                  UPLOAD FILE
                 </h2>
                 <span className="h-px w-14 bg-gradient-to-l from-transparent via-[#f59e0b] to-[#f59e0b] opacity-70" />
               </div>
@@ -134,13 +141,12 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`group relative flex min-h-[470px] cursor-pointer flex-col items-center justify-center rounded-[28px] border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ${
-                  dragActive
-                    ? 'border-[#5a8df6] bg-[#eef4ff] shadow-[0_20px_50px_rgba(90,141,246,0.15)]'
-                    : selectedFile
+                className={`group relative flex min-h-[470px] cursor-pointer flex-col items-center justify-center rounded-[28px] border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ${dragActive
+                  ? 'border-[#5a8df6] bg-[#eef4ff] shadow-[0_20px_50px_rgba(90,141,246,0.15)]'
+                  : selectedFile
                     ? 'border-[#d5def9] bg-[#f8faff]'
                     : 'border-[#d4dbe9] bg-[#fcfdff] hover:border-[#8db0ff] hover:bg-[#f7f9ff]'
-                }`}
+                  }`}
               >
                 <input
                   ref={fileInputRef}
@@ -159,31 +165,40 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
                   </svg>
                 </div>
 
-                {!selectedFile ? (
-                  <>
-                    <p className="text-3xl font-medium text-slate-600">Drag &amp; Drop</p>
-                    <p className="mt-2 text-base text-slate-500">Your files here or browse to upload</p>
-                    <p className="mt-4 text-sm font-semibold text-[#5a8df6]">
-                      Only PDF, DOCX and TXT files with max size of 15 MB.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-2xl font-semibold text-slate-700">{selectedFile.name}</p>
-                    <p className="mt-2 text-base text-slate-500">File ready to generate</p>
-                    <div className="mt-6 rounded-2xl bg-white px-4 py-3 shadow-[0_8px_25px_rgba(15,23,42,0.06)] ring-1 ring-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eff5ff] text-sm font-black text-[#5a8df6] ring-1 ring-[#c7d8ff]">
+                <div className="min-h-[136px]">
+                  {selectedFile ? (
+                    <>
+                      <div className="inline-flex max-w-full items-center gap-3 rounded-full bg-white/80 px-4 py-2 shadow-[0_8px_22px_rgba(15,23,42,0.06)] ring-1 ring-slate-100">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#eff5ff] text-xs font-black tracking-[0.15em] text-[#5a8df6] ring-1 ring-[#c7d8ff]">
                           {getFileExtension(selectedFile.name)}
-                        </div>
-                        <div className="text-left">
-                          <p className="text-sm font-semibold text-slate-700">Selected document</p>
+                        </span>
+                        <div className="min-w-0 text-left">
+                          <p className="truncate text-sm font-semibold text-slate-700">{selectedFile.name}</p>
                           <p className="text-xs text-slate-500">Ready for assessment generation</p>
                         </div>
+                        {!loading && (
+                          <button
+                            onClick={handleClear}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[#5a8df6] hover:bg-[#f7f9ff] hover:text-[#5a8df6]"
+                            aria-label="Clear selected file"
+                            type="button"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
-                    </div>
-                  </>
-                )}
+                      <p className="mt-6 text-base text-slate-500">File ready to generate</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-3xl font-medium text-slate-600">Drag &amp; Drop</p>
+                      <p className="mt-2 text-base text-slate-500">Your files here or browse to upload</p>
+                      <p className="mt-4 text-sm font-semibold text-[#5a8df6]">
+                        Only PDF, DOCX and TXT files with max size of 15 MB.
+                      </p>
+                    </>
+                  )}
+                </div>
 
                 <div className="mt-auto pt-10">
                   <div className="grid grid-cols-3 gap-4 sm:gap-6">
@@ -200,42 +215,65 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
               </div>
 
               <div className="flex min-h-[470px] flex-col justify-between rounded-[28px] bg-[#fbfcff] px-5 py-6 ring-1 ring-slate-100 sm:px-6">
-                <div className="space-y-4">
-                  {supportedFiles.map((file, index) => {
-                    const isSelectedFile = selectedFile && file.active;
-                    const extension = file.label.includes('.')
-                      ? file.label.split('.').pop().toUpperCase()
-                      : index === 0
-                      ? 'FILE'
-                      : 'DOC';
+                <div className="space-y-3">
+                  <h3 className="mb-4 text-sm font-bold uppercase tracking-[0.1em] text-slate-600">Process Flow</h3>
+                  {processSteps.map((step, index) => {
+                    const isActive = step.active;
+                    const isCompleted = step.step === 1 && selectedFile;
 
                     return (
-                      <div
-                        key={`${file.label}-${index}`}
-                        className={`relative rounded-2xl border bg-white px-4 py-4 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition ${
-                          isSelectedFile ? 'border-[#d9e7ff] ring-2 ring-[#5a8df6]/25' : 'border-slate-100'
-                        } ${index === 0 ? 'mb-2' : ''}`}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className={`grid h-12 w-12 place-items-center rounded-2xl border ${iconBg[file.tone]}`}>
-                            <span className="text-xs font-black tracking-[0.15em]">{extension}</span>
-                          </div>
+                      <div key={step.step}>
+                        <div
+                          className={`relative rounded-2xl border px-4 py-4 transition ${isCompleted
+                              ? 'border-[#d9e7ff] bg-[#f0f9ff] ring-1 ring-[#5a8df6]/20'
+                              : isActive
+                                ? 'border-[#fef3c7] bg-[#fffbf0]'
+                                : 'border-slate-100 bg-white opacity-60'
+                            }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div
+                              className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border text-sm font-black ${isCompleted
+                                  ? 'border-emerald-300 bg-emerald-50 text-emerald-600'
+                                  : isActive
+                                    ? 'border-amber-300 bg-amber-50 text-amber-600'
+                                    : 'border-slate-200 bg-slate-50 text-slate-400'
+                                }`}
+                            >
+                              {isCompleted ? '✓' : step.step}
+                            </div>
 
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-slate-800">{file.label}</p>
-                            <p className="mt-0.5 text-xs text-slate-400">{file.subtitle}</p>
-                            <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100">
-                              <div className={`h-full rounded-full bg-gradient-to-r ${accentStyles[file.tone]} ${isSelectedFile ? 'w-[92%]' : index === 0 ? 'w-[76%]' : 'w-[58%]'}`} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className={`text-sm font-semibold ${isCompleted || isActive ? 'text-slate-800' : 'text-slate-600'}`}>
+                                  {step.label}
+                                </p>
+                                <span
+                                  className={`whitespace-nowrap text-xs font-medium ${isCompleted
+                                      ? 'text-emerald-600'
+                                      : isActive
+                                        ? 'text-amber-600'
+                                        : 'text-slate-400'
+                                    }`}
+                                >
+                                  {step.status}
+                                </span>
+                              </div>
+                              <p
+                                className={`mt-1 text-xs ${isCompleted || isActive ? 'text-slate-600' : 'text-slate-400'
+                                  }`}
+                              >
+                                {step.subtitle}
+                              </p>
                             </div>
                           </div>
-
-                          <div className={`mt-1 h-4 w-4 rounded-full border ${isSelectedFile ? 'border-emerald-500 bg-emerald-400' : 'border-sky-300 bg-white'}`} />
                         </div>
 
-                        {isSelectedFile && (
-                          <div className="absolute -right-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 rounded-full bg-white shadow-lg ring-1 ring-slate-100 lg:grid lg:place-items-center">
-                            <span className="text-lg text-[#5a8df6]">+</span>
-                          </div>
+                        {index < processSteps.length - 1 && (
+                          <div
+                            className={`my-2 ml-6 h-3 border-l-2 ${isCompleted ? 'border-emerald-300' : isActive ? 'border-amber-300' : 'border-slate-200'
+                              }`}
+                          />
                         )}
                       </div>
                     );
@@ -249,7 +287,7 @@ export const UploadBox = ({ onFileSelected, onGenerate, loading }) => {
                     disabled={!selectedFile || loading}
                     className="relative z-10 rounded-full bg-[#5a8df6] px-8 py-3 text-sm font-bold uppercase tracking-[0.18em] text-white shadow-[0_18px_35px_rgba(90,141,246,0.35)] transition hover:-translate-y-0.5 hover:bg-[#4f80f0] disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
-                    {loading ? 'Generating...' : 'Save Files'}
+                    {loading ? 'Generating...' : 'Generate Assessment'}
                   </button>
                 </div>
               </div>

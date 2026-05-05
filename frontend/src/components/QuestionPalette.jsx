@@ -1,48 +1,50 @@
 export const QuestionPalette = ({ questions, currentIndex, answers, onJumpToQuestion }) => {
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-      <h3 className="font-bold text-lg text-gray-900 mb-4">Question Palette</h3>
+    <div className="flex flex-col gap-6 h-full">
+      <div>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4">Question Palette</h3>
+        <div className="flex flex-wrap gap-2">
+          {questions.map((question, idx) => {
+            let bgColor = 'bg-slate-100 text-slate-600';
+            let ringColor = 'ring-slate-300';
+            if (answers[question.question_id]) {
+              bgColor = 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md';
+              ringColor = 'ring-green-400';
+            } else if (idx < currentIndex) {
+              bgColor = 'bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md';
+              ringColor = 'ring-orange-400';
+            }
 
-      <div className="grid grid-cols-6 gap-2 mb-6">
-        {questions.map((question, idx) => {
-          let bgColor = 'bg-gray-100';
-          if (answers[question.question_id]) {
-            bgColor = 'bg-green-500';
-          } else if (idx < currentIndex) {
-            bgColor = 'bg-orange-500';
-          }
+            const borderColor = idx === currentIndex ? `ring-2 ring-blue-500 ${ringColor}` : `ring-1 ${ringColor}`;
 
-          const borderColor = idx === currentIndex ? 'border-2 border-blue-500' : '';
-
-          return (
-            <button
-              key={question.question_id}
-              onClick={() => onJumpToQuestion(idx)}
-              className={`w-10 h-10 rounded-lg font-semibold text-white transition ${bgColor} ${borderColor} hover:opacity-80`}
-            >
-              {question.question_id}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={question.question_id}
+                onClick={() => onJumpToQuestion(idx)}
+                className={`w-10 h-10 rounded-xl font-bold text-sm transition transform hover:scale-110 ${bgColor} ${borderColor} hover:shadow-lg`}
+              >
+                {idx + 1}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Legend */}
-      <div className="text-xs space-y-1 pt-4 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="text-gray-600">Answered</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-          <span className="text-gray-600">Unanswered</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded border-2 border-blue-500"></div>
-          <span className="text-gray-600">Current</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gray-100"></div>
-          <span className="text-gray-600">Not Visited</span>
+      <div className="mt-auto pt-6 border-t border-white/50">
+        <div className="text-xs space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-sm"></div>
+            <span className="text-slate-700 font-medium">Answered</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-lg bg-slate-200 shadow-sm"></div>
+            <span className="text-slate-700 font-medium">Not Visited</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-lg border-2 border-blue-500"></div>
+            <span className="text-slate-700 font-medium">Current</span>
+          </div>
         </div>
       </div>
     </div>

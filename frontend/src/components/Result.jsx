@@ -3,100 +3,145 @@ import { useEffect, useState } from 'react';
 
 export const Result = ({ result, questions, answers, onStartNewAssessment }) => {
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    if (result.percentage > 50) {
+    if ((result?.percentage || 0) > 50) {
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [result.percentage]);
+  }, [result]);
 
-  const isPassed = result.percentage >= 50;
-
-  // Create a mapping of question_id to correct answer
-  const questionMap = questions.reduce((acc, q) => {
-    acc[q.question_id] = q;
-    return acc;
-  }, {});
+  const isPassed = (result?.percentage || 0) >= 50;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center px-4 sm:px-8 lg:px-12">
       {showConfetti && <Confetti />}
 
-      <div className="max-w-2xl mx-auto">
-        {/* Score Badge */}
-        <div className="flex justify-center mb-12">
-          <div
-            className={`relative w-32 h-32 rounded-full flex items-center justify-center shadow-lg ${
-              isPassed ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-red-400 to-red-600'
-            }`}
-          >
-            <div className="text-center">
-              <div className="text-5xl font-bold text-white">
-                {Math.round(result.score)}/{Math.round(result.max_score)}
+      <div className="w-full max-w-screen-lg mx-auto">
+        <div className="rounded-[32px] bg-[#edf2ff] p-4 shadow-[0_30px_90px_rgba(79,103,255,0.18)] ring-1 ring-white/70 sm:p-5 lg:p-6">
+          <div className="overflow-hidden rounded-[28px] bg-white/90 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur p-6">
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-56 h-56 relative">
+                <svg viewBox="0 0 120 120" className="w-56 h-56">
+                  <defs>
+                    <linearGradient id="r1" x1="0%" x2="100%">
+                      <stop offset="0%" stopColor="#60A5FA" />
+                      <stop offset="100%" stopColor="#7C3AED" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="52" strokeWidth="12" stroke="#f1f5f9" fill="none" />
+                  {(() => {
+                    const pct = Math.max(0, Math.min(100, Math.round(result?.percentage || 0)));
+                    const r = 52;
+                    const c = 2 * Math.PI * r;
+                    const dash = (pct / 100) * c;
+                    return (
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r={r}
+                        strokeWidth="12"
+                        stroke="url(#r1)"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={`${dash} ${c - dash}`}
+                        transform="rotate(-90 60 60)"
+                      />
+                    );
+                  })()}
+                </svg>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <div className="text-4xl font-bold text-slate-800">{Math.round(result?.percentage || 0)}%</div>
+                  <div className="text-sm text-slate-500">Overall Score</div>
+                </div>
+              </div>
+
+              {/* remove competency summary and info box as requested */}
+
+              {/* pastel stat cards row - centered */}
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-5 gap-3 w-full max-w-4xl">
+                <div className="rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] bg-gradient-to-br from-blue-50 to-cyan-50 text-center border border-blue-100">
+                  <div className="text-xs text-blue-600 font-semibold">Total Time</div>
+                  <div className="text-lg font-bold text-slate-800">{result?.time || '00:00'}</div>
+                </div>
+                <div className="rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] bg-gradient-to-br from-indigo-50 to-blue-50 text-center border border-indigo-100">
+                  <div className="text-xs text-indigo-600 font-semibold">Total Questions</div>
+                  <div className="text-lg font-bold text-slate-800">{questions.length}</div>
+                </div>
+                <div className="rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] bg-gradient-to-br from-orange-50 to-amber-50 text-center border border-orange-100">
+                  <div className="text-xs text-orange-600 font-semibold">Attempted</div>
+                  <div className="text-lg font-bold text-slate-800">{Object.keys(answers).length}</div>
+                </div>
+                <div className="rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] bg-gradient-to-br from-emerald-50 to-green-50 text-center border border-emerald-100">
+                  <div className="text-xs text-emerald-600 font-semibold">Correct</div>
+                  <div className="text-lg font-bold text-slate-800">{result?.score || 0}</div>
+                </div>
+                <div className="rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] bg-gradient-to-br from-red-50 to-rose-50 text-center border border-red-100">
+                  <div className="text-xs text-red-600 font-semibold">Unattempted</div>
+                  <div className="text-lg font-bold text-slate-800">{Math.max(0, questions.length - (Object.keys(answers).length || 0))}</div>
+                </div>
+              </div>
+
+              {/* actions - make both buttons same primary style */}
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={() => setShowDetails((s) => !s)}
+                  className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-[0_18px_35px_rgba(90,141,246,0.35)] hover:scale-105 transition"
+                >
+                  {showDetails ? 'Hide Details' : 'View Details'}
+                </button>
+                <button
+                  onClick={onStartNewAssessment}
+                  className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-[0_18px_35px_rgba(90,141,246,0.35)] hover:scale-105 transition"
+                >
+                  Start New Assessment
+                </button>
               </div>
             </div>
           </div>
         </div>
+        
 
-        {/* Percentage and Status */}
-        <div className="text-center mb-12">
-          <p className="text-4xl font-bold text-gray-900 mb-4">{Math.round(result.percentage)}%</p>
-          <div className="inline-block">
-            <span
-              className={`px-6 py-2 rounded-full font-bold text-white ${
-                isPassed ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            >
-              {isPassed ? 'PASSED' : 'FAILED'}
-            </span>
-          </div>
-        </div>
-
-        {/* Answer Review */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Answer Review</h2>
-
-          <div className="space-y-6">
-            {questions.map((question) => {
-              const userAnswer = answers[question.question_id];
-              const isCorrect = userAnswer === question.correct_answer;
+        {/* Details toggle */}
+        {showDetails && (
+          <div className="mt-8 space-y-5">
+            {questions.map((q, idx) => {
+              const userAnswer = answers[q.question_id];
+              const isCorrect = userAnswer === q.correct_answer;
 
               return (
-                <div key={question.question_id} className="border-l-4 border-gray-300 pl-6 py-4">
-                  <p className="font-semibold text-gray-900 mb-3">
-                    Q{question.question_id}: {question.question_text}
-                  </p>
+                <article key={q.question_id} className="bg-white rounded-2xl shadow-sm p-6 ring-1 ring-white/50">
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-semibold">{idx + 1}</div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-semibold text-slate-900">{q.question_text}</h4>
+                        <div className="text-xs text-slate-500">{q.difficulty || 'Basic'}</div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <p className={`text-sm font-semibold ${
-                      isCorrect ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      Your Answer: {userAnswer || 'Not answered'}
-                      {isCorrect && ' ✓'}
-                      {!isCorrect && userAnswer && ' ✗'}
-                    </p>
-
-                    {!isCorrect && (
-                      <p className="text-sm font-semibold text-green-600">
-                        Correct Answer: {question.correct_answer}
-                      </p>
-                    )}
+                      <div className="mt-4 space-y-2">
+                        {q.options && q.options.map((opt) => {
+                          const isUser = userAnswer === opt.key || userAnswer === opt.text;
+                          return (
+                            <div key={opt.key} className={`rounded-lg border px-4 py-3 ${isUser ? 'border-slate-400 bg-slate-50' : 'border-slate-100 bg-white'}`}>
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-semibold">{opt.key}</div>
+                                <div className="text-sm text-slate-800">{opt.text}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
-        </div>
-
-        {/* Start New Button */}
-        <button
-          onClick={onStartNewAssessment}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg transition transform hover:scale-105"
-        >
-          Start New Assessment
-        </button>
+        )}
       </div>
     </div>
   );
